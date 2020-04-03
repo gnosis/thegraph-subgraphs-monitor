@@ -2,6 +2,7 @@
 import config
 import logging
 import os
+import traceback
 
 from services.thegraph_service import ThegraphService, StatusEndpointUnavailableException
 import requests
@@ -58,3 +59,5 @@ if __name__ == '__main__':
             raise unavailable_endpoint
         except Exception as exception:
             logging.error(f'Exception when checking subgraph {subgraph_name}. Exception: {exception}')
+            # Show exception stack trace
+            traceback.print_exc()

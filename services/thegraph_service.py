@@ -68,7 +68,7 @@ class ThegraphService:
         # There can be only 2 subgraphs status as max:
         # - Current version
         # - Pending version if there is
-        assert 0 < len(subgraph_statuses) <= 2
+        assert (0 < len(subgraph_statuses) <= 2), 'There can be only 2 subgraph statuses as maximum'
 
         current_subgraph_status = subgraph_statuses[0]
 
@@ -82,10 +82,10 @@ class ThegraphService:
 
         subgraph_statuses = self.subgraph_statuses
 
-        # There can be only 2 subgraphs status as max:
+        # There can be only 2 subgraph statuses as max:
         # - Current version
         # - Pending version if there is
-        assert 0 < len(subgraph_statuses) <= 2
+        assert (0 < len(subgraph_statuses) <= 2), 'There can be only 2 subgraph statuses as maximum'
 
         # When there is not a pending subgraph version, status is always ok
         if len(subgraph_statuses) == 2:

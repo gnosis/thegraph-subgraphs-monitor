@@ -1,0 +1,22 @@
+dist: bionic
+language: python
+cache: pip
+python:
+  - "3.8"
+env:
+  global:
+  - DOCKERHUB_PROJECT=thegraph-subgraphs-monitor
+  - PIP_USE_MIRRORS=true # pip will query the DNS entry of the mirror index URL to find the list of mirrors to use
+services:
+  - docker
+install: skip
+script: skip
+deploy:
+  - provider: script
+    script: bash travis/deploy_docker.sh staging
+    on:
+      branch: master
+  - provider: script
+    script: bash travis/deploy_docker.sh $TRAVIS_TAG
+    on:
+      tags: true

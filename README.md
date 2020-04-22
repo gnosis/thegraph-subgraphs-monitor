@@ -8,7 +8,11 @@ What exactly things does it monitor?
 - **CURRENT** subgraph version. This is the subgraph version that is used to answer requests to graphql endpoint.
 - **PENDING** subgraph version. This is the subgraph version that will replace the current version when it is full synced.
 
-If one of them has `status: FAILED`, a notification message will be sent to the defined Slack channel (using an Slack incoming webhook).
+If one of them has `status: FAILED`, a notification message will be sent to the defined **Slack channel** (using an Slack incoming webhook).
+
+Slack alert example:
+
+![example](https://user-images.githubusercontent.com/22997139/80019048-37f72400-84d7-11ea-95cd-def812be0333.PNG)
 
 How to use
 ------------

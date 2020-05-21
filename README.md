@@ -22,28 +22,57 @@ How to use
 
 Another tool
 ------------
-- **Graphql schema generator**. This project uses a graphql endpoint to monitor subgraphs 
-(https://api.thegraph.com/index-node/graphql). 
-If this endpoint schema changes, the command `python tools/graphql_schema_generator.py` has to be executed 
+- **Graphql schema generator**. This project uses a graphql endpoint to monitor subgraphs
+(https://api.thegraph.com/index-node/graphql).
+If this endpoint schema changes, the command `python tools/graphql_schema_generator.py` has to be executed
 to update the schema definition that this project uses.
 
 Check manually a Subgraph status
 -----------------------------------
-- Send a HTTP request to https://api.thegraph.com/index-node/graphql using this query:
+-  **CURRENT subgraph version**. Send a HTTP request to https://api.thegraph.com/index-node/graphql using this query:
     ```
-    {
-        indexingStatusesForSubgraphName(subgraphName: "[SUBGRAPH_NAME]") {
-            subgraph
-            synced
-            failed
-            chains {
-                network
-                ... on EthereumIndexingStatus {
-                    earliestBlock { number hash }
-                    latestBlock { number hash }
-                    chainHeadBlock { number hash }
-                }
-            }
+    indexingStatusForCurrentVersion(subgraphName: "[SUBGRAPH_NAME]") {
+      synced
+      health
+      fatalError {
+        message
+        block {
+          number
+          hash
         }
+        handler
+      }
+      chains {
+        chainHeadBlock {
+          number
+        }
+        latestBlock {
+          number
+        }
+      }
     }
     ```
+
+    - **PENDING subgraph version**. Send a HTTP request to https://api.thegraph.com/index-node/graphql using this query:
+        ```
+        indexingStatusForPendingVersion(subgraphName: "[SUBGRAPH_NAME]") {
+          synced
+          health
+          fatalError {
+            message
+            block {
+              number
+              hash
+            }
+            handler
+          }
+          chains {
+            chainHeadBlock {
+              number
+            }
+            latestBlock {
+              number
+            }
+          }
+        }
+        ```

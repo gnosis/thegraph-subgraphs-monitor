@@ -35,10 +35,10 @@ class ThegraphService:
         self.infura_service = InfuraProvider()
 
         # Get subgraph statuses
-        self.current_subgraph_status = self.get_current_subgraph_status()
-        self.pending_subgraph_status = self.get_pending_subgraph_status()
+        self.current_subgraph_status = self.fetch_current_subgraph_status()
+        self.pending_subgraph_status = self.fetch_pending_subgraph_status()
 
-    def get_current_subgraph_status(self):
+    def fetch_current_subgraph_status(self):
         """
         Get CURRENT subgraph status
         :return: bool
@@ -76,7 +76,7 @@ class ThegraphService:
 
         return subgraph_status
 
-    def get_pending_subgraph_status(self):
+    def fetch_pending_subgraph_status(self):
         """
         Get PENDING subgraph status
         :return: bool
@@ -152,6 +152,30 @@ class ThegraphService:
         else:
             return True
 
+    def get_current_subgraph_last_block_number(self) -> int:
+        """
+        Return current subgraph last block number
+        :return: int
+        """
+
+        subgraph_status = self.current_subgraph_status
+        # Convert to string so that it can be used later
+        # chains[0] is used because Thegraph has said that right now it only has 1 element. Maybe in the future it has more...
+        subgraph_latest_block_number = int(subgraph_status.chains[0].latest_block.number)
+
+        return subgraph_latest_block_number
+
+    def get_current_subgraph_network(self) -> str:
+        """
+        Return current subgraph network
+        :return: str
+        """
+
+        subgraph_status = self.current_subgraph_status
+        subgraph_network = subgraph_status.chains[0].network.lower()
+
+        return subgraph_network
+
     def is_current_subgraph_version_synced(self) -> bool:
         """
         Check if current subgraph version is synced against Infura
@@ -161,11 +185,8 @@ class ThegraphService:
 
         BLOCKS_TO_CONSIDER_OUT_OF_SYNC = 15
 
-        subgraph_status = self.current_subgraph_status
-        # Convert to string so that it can be used later
-        # chains[0] is used because Thegraph has said that right now it only has 1 element. Maybe in the future it has more...
-        subgraph_latest_block_number = int(subgraph_status.chains[0].latest_block.number)
-        subgraph_network = subgraph_status.chains[0].network.lower()
+        subgraph_latest_block_number = self.get_current_subgraph_last_block_number()
+        subgraph_network = self.get_current_subgraph_network()
 
         infura_service = self.infura_service
         infura_latest_block_number = infura_service.get_latest_block_number_of_network(subgraph_network)

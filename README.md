@@ -53,26 +53,26 @@ Check manually a Subgraph status
     }
     ```
 
-    - **PENDING subgraph version**. Send a HTTP request to https://api.thegraph.com/index-node/graphql using this query:
-        ```
-        indexingStatusForPendingVersion(subgraphName: "[SUBGRAPH_NAME]") {
-          synced
-          health
-          fatalError {
-            message
-            block {
-              number
-              hash
-            }
-            handler
-          }
-          chains {
-            chainHeadBlock {
-              number
-            }
-            latestBlock {
-              number
-            }
-          }
+- **PENDING subgraph version**. Send a HTTP request to https://api.thegraph.com/index-node/graphql using this query:
+    ```
+    indexingStatusForPendingVersion(subgraphName: "[SUBGRAPH_NAME]") {
+      synced
+      health
+      fatalError {
+        message
+        block {
+          number
+          hash
         }
-        ```
+        handler
+      }
+      chains {
+        chainHeadBlock {
+          number
+        }
+        latestBlock {
+          number
+        }
+      }
+    }
+    ```

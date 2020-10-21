@@ -12,12 +12,12 @@ def get_slack_notification_message(subgraph_name: str, subgraph_version: str):
 
     # Different titles for each of subgraph version types
     if subgraph_version == 'current':
-        main_title = ":rotating_light: `Subgraph status is FAILED`"
+        main_title = ":rotating_light: `Subgraph status is NOT OK`"
     elif subgraph_version == 'pending':
-        main_title = ":warning: `Subgraph status is FAILED`"
+        main_title = ":warning: `Subgraph status is NOT OK`"
 
     message = {
-        'text': 'Subgraph FAILED status',
+        'text': 'Subgraph is NOT OK status',
         'blocks': [
             {
                 'type': 'section',

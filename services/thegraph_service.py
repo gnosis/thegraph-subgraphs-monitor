@@ -1,10 +1,22 @@
-from logging import getLogger
+import logging
+import os
 
 # Operation generates valid queries, which can be printed out and properly indented.
 # Bonus point is that it can be used to later interpret the JSON results into native Python objects.
 from sgqlc.operation import Operation
 from sgqlc.endpoint.http import HTTPEndpoint
 from graphql_schemas.subgraph_status_schema import subgraph_status_schema
+
+from .infura_service import InfuraProvider, InfuraEndpointUnavailableException
+
+# Read log level as environment variable (by default INFO)
+LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
+assert (LOGLEVEL in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']), 'LOGLEVEL is not valid'
+
+# Configure logs format
+logging.basicConfig(
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    level=LOGLEVEL)
 
 
 class ThegraphService(Exception):
@@ -19,6 +31,8 @@ class ThegraphService:
     def __init__(self, subgraph_name: str, thegraph_status_url: str = 'https://api.thegraph.com/index-node/graphql'):
         self.subgraph_name = subgraph_name
         self.thegraph_status_url = thegraph_status_url
+        # Use a provider to reuse the same service and not make so many requests to Infura
+        self.infura_service = InfuraProvider()
 
         # Get subgraph statuses
         self.current_subgraph_status = self.get_current_subgraph_status()
@@ -38,6 +52,9 @@ class ThegraphService:
         # Important: we must select explicity which fields we want to request in our Graphql Query
         # In this case we select all possible fields
         operation_definition.indexing_status_for_current_version.__fields__('health', 'synced', 'fatal_error', 'chains')
+        # It is needed so that "latest_block" is parsed as it is as subfield
+        operation_definition.indexing_status_for_current_version.chains.__fields__()
+        operation_definition.indexing_status_for_current_version.chains.latest_block.__fields__()
 
         # Call the endpoint:
         headers = {}
@@ -99,13 +116,24 @@ class ThegraphService:
         Check if current subgraph version is ok
         :return: bool
         """
+        is_subgraph_ok = None
 
         subgraph_status = self.current_subgraph_status
 
         is_healthy = self._is_subgraph_healthy(subgraph_status)
-        is_synced = subgraph_status.synced
 
-        return is_healthy and is_synced
+        try:
+            is_synced = self.is_current_subgraph_version_synced()
+
+            is_subgraph_ok = is_healthy and is_synced
+        except InfuraEndpointUnavailableException:
+            logging.error('Infura endpoint to check `synced` status is unavailable (Now only checking healthy status)'
+                          'Please, check this! Possible causes: Infura token has reached the limit, Endpoint is down...')
+
+            # When Infura is not available, we only consider healthy status
+            is_subgraph_ok = is_healthy
+
+        return is_subgraph_ok
 
     def is_pending_subgraph_version_ok(self) -> bool:
         """
@@ -123,6 +151,26 @@ class ThegraphService:
             return is_healthy
         else:
             return True
+
+    def is_current_subgraph_version_synced(self) -> bool:
+        """
+        Check if current subgraph version is synced against Infura
+        Because "synced" property of subgraphs is not useful as it only indicates that a subgraph was synced at some point
+        :return: bool
+        """
+
+        BLOCKS_TO_CONSIDER_OUT_OF_SYNC = 15
+
+        subgraph_status = self.current_subgraph_status
+        # Convert to string so that it can be used later
+        # chains[0] is used because Thegraph has said that right now it only has 1 element. Maybe in the future it has more...
+        subgraph_latest_block_number = int(subgraph_status.chains[0].latest_block.number)
+        subgraph_network = subgraph_status.chains[0].network.lower()
+
+        infura_service = self.infura_service
+        infura_latest_block_number = infura_service.get_latest_block_number_of_network(subgraph_network)
+
+        return (infura_latest_block_number - subgraph_latest_block_number) < BLOCKS_TO_CONSIDER_OUT_OF_SYNC
 
     def _is_subgraph_healthy(self, subgraph_status) -> bool:
         """

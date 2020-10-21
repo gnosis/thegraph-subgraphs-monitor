@@ -73,7 +73,8 @@ class Query(sgqlc.types.Type):
     )
     proof_of_indexing = sgqlc.types.Field(Bytes, graphql_name='proofOfIndexing', args=sgqlc.types.ArgDict((
         ('subgraph', sgqlc.types.Arg(sgqlc.types.non_null(String), graphql_name='subgraph', default=None)),
-        ('block_number', sgqlc.types.Arg(sgqlc.types.non_null(BigInt), graphql_name='blockNumber', default=None)),
+        ('block_hash', sgqlc.types.Arg(sgqlc.types.non_null(Bytes), graphql_name='blockHash', default=None)),
+        ('indexer', sgqlc.types.Arg(Bytes, graphql_name='indexer', default=None)),
 ))
     )
 
